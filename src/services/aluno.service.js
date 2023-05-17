@@ -3,9 +3,9 @@ import Aluno from "../models/aluno.model.js";
 import { generateJWTToken } from "../utils/jwt.js";
 
 const createAluno = async (dados) => {
-  const { cpf, name, email } = dados;
+  const { cpf, nome, email } = dados;
 
-  const existingAluno = await Aluno.findOne({ $or: [{ cpf }, { name }, { email }] });
+  const existingAluno = await Aluno.findOne({ $or: [{ cpf }, { nome }, { email }] });
 
   if (existingAluno) {
     throw { status: 400, message: "Já existe um aluno com esses dados." };
@@ -18,17 +18,23 @@ const createAluno = async (dados) => {
 };
 
 const listAluno = async (id) => {
-  const aluno = await Aluno.findById(id).select("-password");
+  if(id) {
+    const aluno = await Aluno.findById(id).select("-password");
+    return aluno;
+  }
+
+  const aluno = await Aluno.find().select("-password");
   return aluno;
+
 };
 
 const updateAluno = async (id, dados) => {
-  const { cpf, name, email } = dados;
+  const { cpf, nome, email } = dados;
 
   const existingAluno = await Aluno.findOne({
     $and: [
       { _id: { $ne: id } },
-      { $or: [{ cpf }, { name }, { email }] }
+      { $or: [{ cpf }, { nome }, { email }] }
     ]
   });
 
@@ -59,10 +65,10 @@ const authentication = async ({ email, password }) => {
     throw { status: 401, message: "Aluno ou senha inválido" };
   }
 
-  const { _id, name } = aluno;
+  const { _id, nome } = aluno;
 
   // Gerar o token
-  const token = generateJWTToken({ _id, name, email, isProfessor: false });
+  const token = generateJWTToken({ _id, nome, email, isProfessor: false });
   return { token };
 };
 

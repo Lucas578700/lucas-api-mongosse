@@ -7,9 +7,9 @@ const createProfessor = async (dados, isProfessor, imagePath) => {
     throw { status: 401, message: "Apenas professores podem cadastrar professores." };
   }
 
-  const { name, email } = dados;
+  const { nome, email } = dados;
 
-  const existingEstudante = await Professor.findOne({ $or: [{ name }, { email }] });
+  const existingEstudante = await Professor.findOne({ $or: [{ nome }, { email }] });
 
   if (existingEstudante) {
     throw { status: 400, message: "Já existe um professor com esses dados." };
@@ -24,7 +24,12 @@ const createProfessor = async (dados, isProfessor, imagePath) => {
 };
 
 const listProfessor = async (id) => {
-  const professor = await Professor.findById(id).select("-password");
+  if(id){
+    const professor = await Professor.findById(id).select("-password");
+    return professor;
+  }
+
+  const professor = await Professor.find().select("-password");
   return professor;
 };
 
@@ -33,16 +38,16 @@ const updateProfessor = async (id, dados, isProfessor) => {
     throw { status: 401, message: "Apenas professores podem editar professores." };
   }
 
-  const { name, email } = dados;
+  const { nome, email } = dados;
 
   const existingEstudante = await Estudante.findOne({
     $and: [
       { _id: { $ne: id } },
-      { $or: [{ name }, { email }] }
+      { $or: [{ nome }, { email }] }
     ]
   });
 
-  if (existingEstudante) {
+  if (!existingEstudante) {
     throw { status: 400, message: "Já existe um professor com esses dados." };
   }
 
@@ -73,10 +78,10 @@ const authentication = async ({ email, password }) => {
     throw { status: 401, message: "Professor ou senha inválido" };
   }
 
-  const { _id, name } = professor;
+  const { _id, nome } = professor;
 
   // Gerar o token
-  const token = generateJWTToken({ _id, name, email, isProfessor: true });
+  const token = generateJWTToken({ _id, nome, email, isProfessor: true });
   return { token };
 };
 
